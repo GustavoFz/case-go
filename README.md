@@ -16,3 +16,11 @@ This project is an example of CRUD API.
 - PUT    /products/:id     Update a product
 - DELETE /products/:id     Delete a product
 ```
+### Struct Product
+
+```
+Product {
+  Name  string
+  Brand string
+  Price float64
+}
