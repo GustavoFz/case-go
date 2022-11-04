@@ -1,8 +1,6 @@
 package controllers
 
 import (
-	"fmt"
-	"log"
 	"net/http"
 	"strconv"
 
@@ -19,11 +17,14 @@ func GetAllProducts(c echo.Context) error {
 	result := db.Find(&products)
 
 	if result.Error != nil {
-		return c.JSON(http.StatusBadRequest, responses.ProductResponse{Message: "error", Data: &echo.Map{"data": result.Error}})
-
+		return c.JSON(http.StatusBadRequest, responses.ProductResponse{Status: http.StatusBadRequest, Message: "There was an error in the query"})
 	}
 
-	return c.JSON(http.StatusOK, responses.ProductResponse{Message: "error", Data: &echo.Map{"data": products}})
+	if result.RowsAffected == 0 {
+		return c.JSON(http.StatusNotFound, responses.ProductResponse{Status: http.StatusNotFound, Message: "There are no registered products"})
+	}
+
+	return c.JSON(http.StatusOK, responses.ProductResponse{Status: http.StatusOK, Message: "success", Response: &echo.Map{"data": products}})
 }
 
 func GetProduct(c echo.Context) error {
@@ -33,10 +34,14 @@ func GetProduct(c echo.Context) error {
 	result := db.First(&product, id)
 
 	if result.Error != nil {
-		fmt.Print(result.Error)
-		return c.JSON(http.StatusBadRequest, responses.ProductResponse{Message: "error", Data: &echo.Map{"data": result.Error}})
+		return c.JSON(http.StatusBadRequest, responses.ProductResponse{Status: http.StatusBadRequest, Message: "There was an error in the query"})
 	}
-	return c.JSON(http.StatusOK, product)
+
+	if result.RowsAffected == 0 {
+		return c.JSON(http.StatusNotFound, responses.ProductResponse{Status: http.StatusNotFound, Message: "Product not found"})
+	}
+
+	return c.JSON(http.StatusOK, responses.ProductResponse{Status: http.StatusOK, Message: "success", Response: &echo.Map{"data": product}})
 }
 
 func CreateProduct(c echo.Context) error {
@@ -46,7 +51,7 @@ func CreateProduct(c echo.Context) error {
 	price, err := strconv.ParseFloat(c.FormValue("price"), 64)
 
 	if err != nil {
-		fmt.Print(err)
+		return c.JSON(http.StatusBadRequest, responses.ProductResponse{Status: http.StatusBadRequest, Message: "Price is not a number"})
 	}
 
 	product := model.Product{Name: name, Brand: brand, Price: price}
@@ -54,11 +59,10 @@ func CreateProduct(c echo.Context) error {
 	result := db.Create(&product)
 
 	if result.Error != nil {
-		fmt.Print(result.Error)
-		return c.JSON(http.StatusOK, result.Error)
+		return c.JSON(http.StatusBadRequest, responses.ProductResponse{Status: http.StatusBadRequest, Message: "An error occurred while creating the product"})
 	}
 
-	return c.JSON(http.StatusOK, product)
+	return c.JSON(http.StatusOK, responses.ProductResponse{Status: http.StatusOK, Message: "The product was created", Response: &echo.Map{"data": product}})
 }
 
 func UpdateProduct(c echo.Context) error {
@@ -68,15 +72,15 @@ func UpdateProduct(c echo.Context) error {
 	price, err := strconv.ParseFloat(c.FormValue("price"), 64)
 
 	if err != nil {
-		log.Fatal(err)
+		return c.JSON(http.StatusBadRequest, responses.ProductResponse{Status: http.StatusBadRequest, Message: "Price is not a number"})
 	}
 
 	var product model.Product
 
 	getProduct := db.First(&product, id)
 
-	if getProduct != nil {
-		fmt.Print(getProduct.Error)
+	if getProduct.Error != nil {
+		return c.JSON(http.StatusNotFound, responses.ProductResponse{Status: http.StatusNotFound, Message: "Product not found"})
 	}
 
 	product = model.Product{Name: name, Brand: brand, Price: price}
@@ -84,10 +88,10 @@ func UpdateProduct(c echo.Context) error {
 	result := db.Save(&product)
 
 	if result.Error != nil {
-		fmt.Print(result.Error)
+		return c.JSON(http.StatusBadRequest, responses.ProductResponse{Status: http.StatusBadRequest, Message: "An error occurred while updating the product"})
 	}
 
-	return c.JSON(http.StatusOK, product)
+	return c.JSON(http.StatusOK, responses.ProductResponse{Status: http.StatusOK, Message: "The product has been updated", Response: &echo.Map{"data": product}})
 
 }
 
@@ -98,7 +102,7 @@ func DeleteProduct(c echo.Context) error {
 	result := db.Delete(&model.Product{}, id)
 
 	if result.Error != nil {
-		fmt.Print(result.Error)
+		return c.JSON(http.StatusBadRequest, responses.ProductResponse{Status: http.StatusBadRequest, Message: "An error occurred while deleting the product"})
 	}
-	return c.JSON(http.StatusOK, result)
+	return c.JSON(http.StatusOK, responses.ProductResponse{Status: http.StatusOK, Message: "The product has been deleted"})
 }
