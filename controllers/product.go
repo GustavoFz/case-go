@@ -12,6 +12,7 @@ import (
 
 var db = config.InitConnection()
 
+// Get all products from the database
 func GetAllProducts(c echo.Context) error {
 	products := []*model.Product{}
 	result := db.Find(&products)
@@ -27,6 +28,7 @@ func GetAllProducts(c echo.Context) error {
 	return c.JSON(http.StatusOK, responses.ProductResponse{Status: http.StatusOK, Message: "success", Response: &echo.Map{"data": products}})
 }
 
+// Get a product from the database
 func GetProduct(c echo.Context) error {
 	id := c.Param("id")
 	var product model.Product
@@ -44,6 +46,7 @@ func GetProduct(c echo.Context) error {
 	return c.JSON(http.StatusOK, responses.ProductResponse{Status: http.StatusOK, Message: "success", Response: &echo.Map{"data": product}})
 }
 
+// Create a new product in the database
 func CreateProduct(c echo.Context) error {
 
 	name := c.FormValue("name")
@@ -65,6 +68,7 @@ func CreateProduct(c echo.Context) error {
 	return c.JSON(http.StatusOK, responses.ProductResponse{Status: http.StatusOK, Message: "The product was created", Response: &echo.Map{"data": product}})
 }
 
+// Update a product in the database
 func UpdateProduct(c echo.Context) error {
 	id := c.Param("id")
 	name := c.FormValue("name")
@@ -95,6 +99,7 @@ func UpdateProduct(c echo.Context) error {
 
 }
 
+// Delete a product from the database
 func DeleteProduct(c echo.Context) error {
 
 	id := c.Param("id")
