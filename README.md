@@ -1,4 +1,4 @@
-# case-eulabs
+# case-go
 
 This project is an example of CRUD API.
 
